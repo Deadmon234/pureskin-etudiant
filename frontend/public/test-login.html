@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Connexion Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #059669; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <h1>Test Connexion Admin</h1>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="username">Email/Username:</label>
+            <input type="text" id="username" value="admin" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Mot de passe:</label>
+            <input type="password" id="password" value="admin123" required>
+        </div>
+        <button type="submit">Se connecter</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch('/api/admin/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Connexion réussie!</h3>
+                        <p><strong>Message:</strong> ${data.message}</p>
+                        <p><strong>AccessToken:</strong> ${data.data.accessToken.substring(0, 50)}...</p>
+                        <p><strong>User:</strong> ${data.data.user.fullName} (${data.data.user.email})</p>
+                        <p><strong>Role:</strong> ${data.data.user.role}</p>
+                        <button onclick="testDashboard()">Tester Dashboard</button>
+                    `;
+                    
+                    // Stocker les tokens
+                    localStorage.setItem('admin_access_token', data.data.accessToken);
+                    localStorage.setItem('admin_refresh_token', data.data.refreshToken);
+                    localStorage.setItem('admin_user', JSON.stringify(data.data.user));
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Échec de connexion</h3>
+                        <p><strong>Erreur:</strong> ${data.message}</p>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Erreur technique</h3>
+                    <p><strong>Message:</strong> ${error.message}</p>
+                `;
+            }
+        });
+        
+        function testDashboard() {
+            window.open('/admin/dashboard/sidebar', '_blank');
+        }
+    </script>
+</body>
+</html>

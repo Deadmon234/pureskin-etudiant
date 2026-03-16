@@ -1,0 +1,53 @@
+Variables d'environnement pour Railway
+===================================
+Définissez ces variables dans votre projet Railway
+
+# =============================================
+# BASE DE DONNÉES POSTGRESQL (Railway la fournit automatiquement)
+# =============================================
+# DATABASE_URL - Généré automatiquement par Railway
+# DATABASE_USER - Généré automatiquement par Railway  
+# DATABASE_PASSWORD - Généré automatiquement par Railway
+
+# =============================================
+# CONFIGURATION JWT (Obligatoire)
+# =============================================
+JWT_SECRET=votre-secret-key-super-secure-changez-cela
+
+# =============================================
+# CONFIGURATION FAROTY API
+# =============================================
+FAROTY_API_KEY=fk_live_mhZG1htEBgK02jvI5QZqNYTpzgdfFmMCisI8cho4KbxqSD9uq2l6h39XppRSayQVTtAj5pCAjRU
+FAROTY_WALLET_ID=9c3cdf3b-ff0b-44d9-8aa0-4e638c88f660
+FAROTY_WITHDRAWAL_REF_ID=c173d45d-4787-4f52-8e46-d7320ea43a76
+
+# =============================================
+# CONFIGURATION REDIS (Optionnel)
+# =============================================
+REDIS_URL=redis://default:votre-mot-de-passe@votre-redis.railway.app:6379
+
+# =============================================
+# CONFIGURATION SENTRY (Optionnel)
+# =============================================
+SENTRY_DSN=https://05fcbdd0b71b06b8749defff1d3e466a@o4511037530243072.ingest.us.sentry.io/4511037530570752
+
+# =============================================
+# VARIABLES AUTOMATIQUES RAILWAY
+# =============================================
+# RAILWAY_PUBLIC_DOMAIN - URL de votre application
+# RAILWAY_ENVIRONMENT - Environment (production/staging)
+# RAILWAY_PROJECT_NAME - Nom du projet
+
+===================================
+Instructions de déploiement Railway:
+
+1. Connectez-vous à Railway (https://railway.app)
+2. Créez un nouveau projet
+3. Connectez votre repository GitHub
+4. Ajoutez les variables d'environnement ci-dessus
+5. Déployez automatiquement via GitHub Actions
+
+Variables fournies automatiquement par Railway:
+- DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD (PostgreSQL)
+- RAILWAY_PUBLIC_DOMAIN (URL de l'app)
+- RAILWAY_ENVIRONMENT

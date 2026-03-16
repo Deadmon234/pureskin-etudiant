@@ -1,0 +1,388 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { CreditCard, Shield, ArrowRight, ArrowLeft, Check, Loader2, User, Truck } from "lucide-react";
+import Link from "next/link";
+import { farotyService, FarotyUser } from "@/lib/faroty-service";
+import { cartService, CartItem } from "@/lib/cart";
+
+export default function PaymentCheckoutPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingWallet, setIsCreatingWallet] = useState(false);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<FarotyUser | null>(null);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [walletCreated, setWalletCreated] = useState(false);
+  const [walletId, setWalletId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string>('');
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur est authentifié
+    const farotyUserStr = localStorage.getItem('faroty_user');
+    if (!farotyUserStr) {
+      router.push('/auth-checkout');
+      return;
+    }
+
+    try {
+      const user = JSON.parse(farotyUserStr);
+      setUserInfo(user);
+    } catch (error) {
+      console.error('Erreur parsing user:', error);
+      router.push('/auth-checkout');
+      return;
+    }
+
+    // Charger les informations utilisateur et le panier
+    const loadData = async () => {
+      try {
+        const user = FarotyAuthService.getUserInfo();
+        const cart = cartService.getCart();
+        const savedOrderId = localStorage.getItem('pending_order_id');
+        
+        setUserInfo(user);
+        setCartItems(cart.items);
+        setTotal(cart.total);
+        
+        if (savedOrderId) {
+          setOrderId(savedOrderId);
+        }
+
+        // Vérifier si un wallet existe déjà
+        if (FarotyPaymentService.hasWallet()) {
+          const existingWalletId = FarotyPaymentService.getWalletId();
+          setWalletId(existingWalletId);
+          setWalletCreated(true);
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        setError('Erreur lors du chargement des données');
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [router]);
+
+  const handleCreateWallet = async () => {
+    if (!userInfo || !orderId) return;
+
+    setIsCreatingWallet(true);
+    setError(null);
+
+    try {
+      // Pour cet exemple, nous utilisons des IDs de test
+      // En production, ces valeurs devraient venir de votre système
+      const legalIdentifier = "5bdf3222-fea0-4938-82a1-df2955516f25"; // ID de l'organisation
+      
+      const response = await FarotyPaymentService.createWallet(
+        userInfo.id,
+        legalIdentifier
+      );
+
+      if (response.success) {
+        setWalletId(response.data.id);
+        setWalletCreated(true);
+        
+        // Mettre à jour la commande avec le wallet ID
+        await fetch(`http://localhost:8081/api/orders/${orderId}/payment-info`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            walletId: response.data.id,
+            sessionToken: '',
+            farotyUserId: userInfo.id
+          })
+        });
+        
+        // Mettre à jour le webhook URL (une seule fois)
+        const webhookUrl = `${window.location.origin}/api/payment/webhook`;
+        await FarotyPaymentService.updateWebhookUrl(webhookUrl);
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de la création du wallet:', error);
+      setError(error.message || 'Erreur lors de la création du wallet');
+    } finally {
+      setIsCreatingWallet(false);
+    }
+  };
+
+  const handleInitiatePayment = async () => {
+    if (!walletId || cartItems.length === 0 || !orderId) return;
+
+    setIsCreatingSession(true);
+    setError(null);
+
+    try {
+      const amount = FarotyPaymentService.calculatePaymentAmount(total);
+      const { cancelUrl, successUrl } = FarotyPaymentService.generateReturnUrls();
+
+      const response = await FarotyPaymentService.createPaymentSession(
+        walletId,
+        amount,
+        cancelUrl,
+        successUrl
+      );
+
+      if (response.success) {
+        // Mettre à jour la commande avec le session token
+        await fetch(`http://localhost:8081/api/orders/${orderId}/payment-info`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            walletId: walletId,
+            sessionToken: response.data.sessionToken,
+            farotyUserId: userInfo?.id || ''
+          })
+        });
+
+        // Rediriger vers la page de paiement Faroty
+        console.log('Redirection vers:', response.data.sessionUrl);
+        window.location.href = response.data.sessionUrl;
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de la création de la session:', error);
+      setError(error.message || 'Erreur lors de l\'initialisation du paiement');
+    } finally {
+      setIsCreatingSession(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 animate-spin text-green-500 mx-auto mb-4" />
+              <p className="text-gray-600">Préparation de votre paiement...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <Link 
+              href="/checkout"
+              className="inline-flex items-center text-green-600 hover:text-green-700 mb-4"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Retour à la finalisation
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Finalisation du paiement sécurisé
+            </h1>
+            <p className="text-gray-600">
+              {walletCreated 
+                ? "Votre wallet Faroty est prêt. Confirmez votre paiement pour finaliser votre commande."
+                : "Création de votre wallet Faroty pour un paiement sécurisé."
+              }
+            </p>
+          </div>
+
+          {/* Order Summary */}
+          {cartItems.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Récapitulatif de la commande</h2>
+              {orderId && (
+                <p className="text-sm text-gray-600 mb-3">
+                  Commande n°: <span className="font-mono font-medium">#{orderId}</span>
+                </p>
+              )}
+              <div className="space-y-2 mb-4">
+                {cartItems.slice(0, 3).map((item, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>{item.name} x{item.quantity}</span>
+                    <span>{(item.price * item.quantity).toFixed(2)} €</span>
+                  </div>
+                ))}
+                {cartItems.length > 3 && (
+                  <div className="text-sm text-gray-600">
+                    +{cartItems.length - 3} autre(s) article(s)
+                  </div>
+                )}
+              </div>
+              <div className="border-t pt-3">
+                <div className="flex justify-between font-semibold">
+                  <span>Total (EUR)</span>
+                  <span>{total.toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600 mt-1">
+                  <span>Total (XAF)</span>
+                  <span>{FarotyPaymentService.calculatePaymentAmount(total)} XAF</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* User Info */}
+          {userInfo && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-medium">
+                    {userInfo.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-medium text-blue-900">{userInfo.fullName}</h3>
+                  <p className="text-sm text-blue-700">{userInfo.email}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wallet Status */}
+          <div className="bg-white rounded-lg border border-gray-200 p-8">
+            {!walletCreated ? (
+              // Étape 1: Création du wallet
+              <div className="text-center space-y-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                  <CreditCard className="w-8 h-8 text-green-600" />
+                </div>
+                
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Création de votre wallet Faroty
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Pour sécuriser votre paiement, nous allons créer votre wallet de paiement Faroty.
+                    Ceci ne prendra que quelques secondes.
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4 text-left">
+                  <h3 className="font-medium text-gray-900 mb-3">🔒 Avantages du wallet Faroty :</h3>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      Paiements sécurisés et instantanés
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      Gestion facile de vos transactions
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      Protection contre la fraude
+                    </li>
+                  </ul>
+                </div>
+
+                <button
+                  onClick={handleCreateWallet}
+                  disabled={isCreatingWallet}
+                  className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium disabled:bg-gray-300 flex items-center justify-center"
+                >
+                  {isCreatingWallet ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      Création du wallet en cours...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Créer mon wallet Faroty
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              // Étape 2: Initialisation du paiement
+              <div className="text-center space-y-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                  <Shield className="w-8 h-8 text-green-600" />
+                </div>
+                
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Wallet créé avec succès !
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Votre wallet Faroty est prêt. Cliquez sur le bouton ci-dessous pour 
+                    procéder au paiement sécurisé de votre commande.
+                  </p>
+                </div>
+
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-center space-x-2 text-green-800">
+                    <Check className="w-5 h-5" />
+                    <span className="font-medium">Wallet ID: {walletId}</span>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-medium text-blue-900 mb-2">🚀 Prochaines étapes :</h3>
+                  <ol className="text-sm text-blue-800 space-y-1 text-left">
+                    <li>1. Cliquez sur "Continuer le paiement"</li>
+                    <li>2. Redirection vers la plateforme Faroty</li>
+                    <li>3. Paiement sécurisé avec votre wallet</li>
+                    <li>4. Confirmation automatique de votre commande</li>
+                  </ol>
+                </div>
+
+                <button
+                  onClick={handleInitiatePayment}
+                  disabled={isCreatingSession}
+                  className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium disabled:bg-gray-300 flex items-center justify-center"
+                >
+                  {isCreatingSession ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      Initialisation du paiement...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Continuer le paiement
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800">{error}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Security Info */}
+          <div className="mt-8 text-center">
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+              <Shield className="w-4 h-4" />
+              <span>Paiement 100% sécurisé via Faroty</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}

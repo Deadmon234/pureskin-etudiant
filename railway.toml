@@ -1,0 +1,24 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+healthcheckPath = "/actuator/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[services]]
+name = "pureskin-backend"
+
+[services.variables]
+PORT = "8080"
+SPRING_DATASOURCE_URL = "${{DATABASE_URL}}"
+SPRING_DATASOURCE_USERNAME = "${{DATABASE_USER}}"
+SPRING_DATASOURCE_PASSWORD = "${{DATABASE_PASSWORD}}"
+JWT_SECRET = "${{JWT_SECRET}}"
+JWT_EXPIRATION_IN_MS = "86400000"
+FAROTY_API_KEY = "${{FAROTY_API_KEY}}"
+FAROTY_WALLET_ID = "${{FAROTY_WALLET_ID}}"
+FAROTY_WITHDRAWAL_REF_ID = "${{FAROTY_WITHDRAWAL_REF_ID}}"
+REDIS_URL = "${{REDIS_URL}}"
+SENTRY_DSN = "${{SENTRY_DSN}}"

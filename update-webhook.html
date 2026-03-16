@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mise à jour Webhook Faroty</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .code {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Mise à jour Webhook Faroty</h1>
+        
+        <div class="info">
+            <strong>📋 Informations actuelles :</strong><br>
+            Webhook ID: <code>d4c411c0-fc50-4d56-a3a5-21c47a26cc66</code><br>
+            Account ID: <code>816ac7c4-f55d-4c90-9772-92ca78e2ab17</code><br>
+            URL cible: <code>http://localhost:8080/api/webhooks/faroty/payment</code>
+        </div>
+
+        <form id="webhookForm">
+            <div class="form-group">
+                <label for="webhookId">Webhook ID:</label>
+                <input type="text" id="webhookId" value="d4c411c0-fc50-4d56-a3a5-21c47a26cc66" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="accountId">Account ID:</label>
+                <input type="text" id="accountId" value="816ac7c4-f55d-4c90-9772-92ca78e2ab17" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="apiKey">API Key:</label>
+                <input type="password" id="apiKey" value="fk_live_mhZG1htEBgK02jvI5QZqNYTpzgdfFmMCisI8cho4KbxqSD9uq2l6h39XppRSayQVTtAj5pCAjRU" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="webhookUrl">URL du Webhook:</label>
+                <input type="text" id="webhookUrl" value="http://localhost:8080/api/webhooks/faroty/payment" placeholder="https://votre-domaine.com/api/webhooks/faroty/payment">
+            </div>
+
+            <button type="submit" id="updateBtn">
+                🔄 Mettre à jour l'URL du Webhook
+            </button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <div class="info">
+            <strong>📝 Notes importantes :</strong>
+            <ul>
+                <li>L'URL doit être accessible depuis Internet (pas localhost pour la production)</li>
+                <li>Pour le développement, vous pouvez utiliser des outils comme ngrok pour exposer localhost</li>
+                <li>Le webhook recevra les notifications de paiement de Faroty</li>
+                <li>Vérifiez que votre backend écoute bien sur le port 8080</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <strong>🔧 Commande curl équivalente :</strong>
+            <pre>curl -X PUT "https://api-pay-prod.faroty.me/payments/api/v1/webhooks/d4c411c0-fc50-4d56-a3a5-21c47a26cc66" \
+-H "Content-Type: application/json" \
+-H "X-Account-ID: 816ac7c4-f55d-4c90-9772-92ca78e2ab17" \
+-H "X-API-KEY: fk_live_mhZG1htEBgK02jvI5QZqNYTpzgdfFmMCisI8cho4KbxqSD9uq2l6h39XppRSayQVTtAj5pCAjRU" \
+-d '{"url": "http://localhost:8080/api/webhooks/faroty/payment"}'</pre>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('webhookForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const webhookId = document.getElementById('webhookId').value;
+            const accountId = document.getElementById('accountId').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const webhookUrl = document.getElementById('webhookUrl').value;
+            const resultDiv = document.getElementById('result');
+            const updateBtn = document.getElementById('updateBtn');
+            
+            // Désactiver le bouton
+            updateBtn.disabled = true;
+            updateBtn.textContent = '🔄 Mise à jour en cours...';
+            
+            try {
+                console.log('🔄 Mise à jour URL webhook Faroty...');
+                console.log('Webhook ID:', webhookId);
+                console.log('Account ID:', accountId);
+                console.log('Nouvelle URL:', webhookUrl);
+
+                const url = `https://api-pay-prod.faroty.me/payments/api/v1/webhooks/${webhookId}`;
+                
+                const requestBody = {
+                    url: webhookUrl
+                };
+
+                console.log('URL de la requête:', url);
+                console.log('Corps de la requête:', JSON.stringify(requestBody, null, 2));
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Account-ID': accountId,
+                        'X-API-KEY': apiKey
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                console.log('Status de la réponse:', response.status);
+                console.log('Status Text:', response.statusText);
+
+                const data = await response.json();
+                console.log('Réponse:', JSON.stringify(data, null, 2));
+
+                // Afficher le résultat
+                resultDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Succès !</h3>
+                        <p><strong>URL webhook mise à jour avec succès !</strong></p>
+                        <p><strong>Nouvelle URL:</strong> <code>${webhookUrl}</code></p>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <details>
+                            <summary>Réponse complète</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Erreur !</h3>
+                        <p><strong>Erreur lors de la mise à jour:</strong></p>
+                        <p><strong>Status:</strong> ${response.status} - ${response.statusText}</p>
+                        <details>
+                            <summary>Détails de l'erreur</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('❌ Erreur réseau:', error);
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Erreur réseau !</h3>
+                    <p><strong>Erreur:</strong> ${error.message}</p>
+                    <p>Vérifiez votre connexion Internet et réessayez.</p>
+                `;
+            } finally {
+                // Réactiver le bouton
+                updateBtn.disabled = false;
+                updateBtn.textContent = '🔄 Mettre à jour l\'URL du Webhook';
+            }
+        });
+    </script>
+</body>
+</html>

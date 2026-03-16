@@ -1,0 +1,65 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="waterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#bgGradient)" />
+  
+  <!-- Inner white circle for contrast -->
+  <circle cx="100" cy="100" r="80" fill="white" opacity="0.95" />
+  
+  <!-- Leaf shape (representing natural/skin care) -->
+  <path d="M 100 40 
+           C 85 45, 75 55, 75 70
+           C 75 85, 85 95, 100 100
+           C 115 95, 125 85, 125 70
+           C 125 55, 115 45, 100 40 Z" 
+        fill="url(#leafGradient)" />
+  
+  <!-- Water drop shape (representing hydration/care) -->
+  <path d="M 100 60
+           C 100 60, 90 75, 90 85
+           C 90 95, 95 100, 100 100
+           C 105 100, 110 95, 110 85
+           C 110 75, 100 60, 100 60 Z" 
+        fill="url(#waterGradient)" 
+        opacity="0.8" />
+  
+  <!-- Small circles representing pores/skin texture -->
+  <circle cx="85" cy="75" r="3" fill="#059669" opacity="0.6" />
+  <circle cx="115" cy="75" r="3" fill="#059669" opacity="0.6" />
+  <circle cx="100" cy="85" r="2.5" fill="#059669" opacity="0.5" />
+  <circle cx="92" cy="90" r="2" fill="#059669" opacity="0.4" />
+  <circle cx="108" cy="90" r="2" fill="#059669" opacity="0.4" />
+  
+  <!-- Graduation cap element (representing students) -->
+  <path d="M 70 120 L 100 110 L 130 120 L 130 125 L 100 135 L 70 125 Z" 
+        fill="#1F2937" />
+  <rect x="95" y="105" width="10" height="8" fill="#1F2937" />
+  <circle cx="100" cy="103" r="3" fill="#1F2937" />
+  
+  <!-- Text "PS" (PureSkin) in the center -->
+  <text x="100" y="155" font-family="Arial, sans-serif" font-size="24" font-weight="bold" 
+        text-anchor="middle" fill="#1F2937">PS</text>
+  
+  <!-- Small decorative elements -->
+  <circle cx="60" cy="60" r="2" fill="#10B981" opacity="0.3" />
+  <circle cx="140" cy="60" r="2" fill="#3B82F6" opacity="0.3" />
+  <circle cx="60" cy="140" r="2" fill="#3B82F6" opacity="0.3" />
+  <circle cx="140" cy="140" r="2" fill="#10B981" opacity="0.3" />
+</svg>
