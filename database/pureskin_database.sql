@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.addresses
 CREATE TABLE IF NOT EXISTS public.admin_logs
 (
     id serial NOT NULL,
-    user_id integer,
+    user_id bigint,
     action character varying(100) COLLATE pg_catalog."default" NOT NULL,
     entity_type character varying(50) COLLATE pg_catalog."default",
     entity_id integer,
@@ -428,7 +428,7 @@ CREATE TABLE IF NOT EXISTS public.transactions
 CREATE TABLE IF NOT EXISTS public.user_sessions
 (
     id serial NOT NULL,
-    user_id integer NOT NULL,
+    user_id bigint NOT NULL,
     session_token character varying(255) COLLATE pg_catalog."default" NOT NULL,
     expires_at timestamp without time zone NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
